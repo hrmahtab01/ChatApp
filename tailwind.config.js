@@ -11,6 +11,12 @@ export default {
        
       }
     },
+    colors:{
+      Primary:'#11175D',
+      Secondary:'#5F35F5',
+      ThirdColor:'#000000',
+      lal:'#FF0000'
+    }
   },
   plugins: [],
 }
