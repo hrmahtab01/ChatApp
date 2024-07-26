@@ -1,21 +1,30 @@
 import React, { useState } from "react";
 import SigninImg from "../assets/Signin.png";
-import { Link, NavLink } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GoCheck } from "react-icons/go";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { TailSpin } from "react-loader-spinner";
+
 
 const Signin = () => {
+  
+  const auth = getAuth();
+  let Navigate =useNavigate()
   let [name, setname] = useState("");
   let [email, setemail] = useState("");
   let [password, Setpassword] = useState("");
   let [nameerr, setnameerr] = useState("");
   let [emailerr, setemailerr] = useState("");
+  let [emailerre, setemailerre] = useState("");
   let [passworderr, Setpassworderr] = useState("");
   let [showpassword, Setshowpassword] = useState(false);
   let [items, setitems] = useState(false);
+  let [loader, Setloader] = useState(false);
 
   let handleEmailChange = (e) => {
     setemail(e.target.value);
     setemailerr("");
+    setemailerre("")
   };
   let handleNameChange = (e) => {
     setname(e.target.value);
@@ -29,12 +38,39 @@ const Signin = () => {
   let handleSubmit = () => {
     if (!email) {
       setemailerr("!");
+    } else if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+      setemailerre("Invalid email");
     }
     if (!name) {
       setnameerr("!");
     }
     if (!password) {
       Setpassworderr("!");
+    }
+
+    if (email && name && password) {
+      Setloader(true);
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+         setTimeout(() => {
+          Setloader(false)
+          Navigate('/')
+          const user = userCredential.user;
+         },2000);
+ 
+          
+        })
+        .catch((error) => {
+          setTimeout(() => {
+            Setloader(false)
+            if (error.code.includes("auth/email-already-in-use")){
+              setemailerre("Email already used")
+            }
+           
+          
+           
+          }, 2000);
+        });
     }
   };
 
@@ -65,7 +101,7 @@ const Signin = () => {
               value={email}
               className={`w-full h-full border-2 rounded-xl ${
                 emailerr ? "border-lal" : "border-[#11175D]/50"
-              } lg:pl-[52px] md:pl-[26px] pl-[15px] text-xl font-semibold text-[#11175D]`}
+              } ${emailerre ? "border-lal" : "border-[#11175D]/50"} lg:pl-[52px] md:pl-[26px] pl-[15px] text-xl font-semibold text-[#11175D]`}
               type="text"
               placeholder="Enter your email"
             />
@@ -73,6 +109,9 @@ const Signin = () => {
               <div className="w-5 h-5 rounded-full bg-[#A52A2A] absolute top-[50%] right-3 translate-y-[-50%]  flex justify-center items-center">
                 <p className="text-[#FFFf] text-xl">{emailerr}</p>
               </div>
+            )}
+            {emailerre && (
+              <p className="text-lal font-normal text-xl font-Nunito">{emailerre}</p>
             )}
           </div>
 
@@ -132,14 +171,29 @@ const Signin = () => {
               </div>
             )}
           </div>
-          <div className="flex justify-center lg:justify-start">
-            <button
-              onClick={handleSubmit}
-              className=" py-4 px-[100px]  lg:py-[20px] lg:px-[145px] md:py-[20px] md:px-[145px] bg-Secondary rounded-xl text-xl font-semibold font-Nunito text-[#ffffff] mt-[51px]"
-            >
-              Sign up
-            </button>
-          </div>
+          {loader ? (
+            <div className="flex justify-center mt-8 mr-20">
+              <TailSpin
+                visible={true}
+                height="50"
+                width="50"
+                color="#4fa94d"
+                ariaLabel="tail-spin-loading"
+                radius="1"
+                wrapperStyle={{}}
+                wrapperClass=" justify-center items-center"
+              />
+            </div>
+          ) : (
+            <div className="flex justify-center lg:justify-start">
+              <button
+                onClick={handleSubmit}
+                className=" py-4 px-[100px]  lg:py-[20px] lg:px-[145px] md:py-[20px] md:px-[145px] bg-Secondary rounded-xl text-xl font-semibold font-Nunito text-[#ffffff] mt-[51px]"
+              >
+                Sign up
+              </button>
+            </div>
+          )}
           <p className="text-sm text-[#03014C] font-normal font-Nunito mt-[35px] ml-[75px]">
             Already have an account ?{" "}
             <Link to="/" className="font-bold font-Nunito text-[#EA6C00]">
